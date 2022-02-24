@@ -36,5 +36,5 @@ int main()
 {
     // tester("a12+");
     fparser::fparser<double> fp("x^2 + 2*x + 3", "x");
-    fp.calculate(1.25);
+    std::cout << fp.calculate(1.25) << std::endl;
 }

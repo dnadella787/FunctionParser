@@ -3,18 +3,11 @@
 #include <stack>
 #include <cmath>
 #include <sstream>
-
-
-template <typename S> S convert_to (const std::string str)
-{
-    std::istringstream ss(str);
-    S num;
-    ss >> num;
-    return num;
-}
+#include <cassert>
 
 
 
+//error when fparser::fparser<int> fp("x^2 + 3*x + 3", "x");
 namespace fparser 
 {
 
@@ -43,7 +36,17 @@ protected:
         else 
             return 0;
     }
-    
+
+
+    T convert_to(const std::string& str)
+    {
+        std::istringstream ss(str);
+        T num;
+        ss >> num;
+        return num;
+    }
+
+
 public:
     fparser(const std::string& f, const std::string& input_var) : func(f), var(input_var)
     {
@@ -58,7 +61,10 @@ public:
         std::stack<char> f_stack;
         for (std::string::const_iterator it = f.begin(); it != f.end(); ++it)
         {
-            if (isalnum(*it))
+            if (*it == ' ')
+                continue; 
+
+            else if (isalnum(*it))
                 postfix += *it;
 
             else if (*it == '(' || *it == '^')
@@ -99,45 +105,44 @@ public:
     }
 
 
-    //SOMETHING IS WRONG WITH CALCULATE HERE NEED TO DEBUG
-    //SEGFAULTING ON ITSELF
-    T calculate(const T& x_val)
+    // this currently works but need to make it so you can have 
+    // multiple digits for coefficients (like 32*x)
+    // also needs to be refactored to use iterators instead of 
+    // just an int
+    T calculate(const T x_val)
     {
         T y_val;
-        std::stack<std::string> s;
+        std::stack<T> s;
 
-        for (const char c : postfix)
+        for (int i = 0; i < postfix.size(); ++i)
         {
-            auto iter = operators.find(c);
+            auto iter = operators.find(postfix[i]);
+
+            //if the current char in the postfix string is an operator
             if (iter != operators.end())
             {
+                assert(s.size() >= 2);
                 auto func = iter->second;
-                T second = convert_to<T>(s.top());
+                T second = s.top();
                 s.pop();
-                T first = convert_to<T>(s.top());
+                T first = s.top();
                 s.pop();
                 T result = func(first, second);
-                s.push(std::to_string(result));
+                s.push(result);
             }
             else
             {
-                if (std::to_string(c) == var)
-                    s.push(std::to_string(x_val));
+                // if its not an operator, check if its a variable
+                if (postfix.substr(i,1) == var)
+                    s.push(x_val);
+                // otherwise it is a constant just add to stack
                 else
-                    s.push(std::to_string(c));
+                    s.push(convert_to(postfix.substr(i,1)));
             }
         }
 
-        return convert_to<T>(s.top());
+        return s.top();
     }
-
-
-
-    void print()
-    {
-        std::cout << postfix << std::endl;
-    }
-
 };
 
 }
