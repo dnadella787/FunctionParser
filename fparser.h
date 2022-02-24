@@ -10,10 +10,12 @@ template <typename T>
 class fparser
 {
 protected:
+    static_assert(std::is_arithmetic<T>::value, "fparser template parameter must be numeric (int, float, long, etc).");
+
     std::string func;
     std::string postfix;
     std::stack<char> pfix_stack;
-    char var; 
+    std::string var; 
 
 
     int preced(const char& ch) 
@@ -29,16 +31,17 @@ protected:
     }
     
 public:
-    fparser(const std::string& f, const char& variable) : func(f), var(variable)
+    fparser(const std::string& f, const std::string& input_var) : func(f), var(input_var)
     {
         std::stack<char> f_stack;
         f_stack.push('#');
-        //initialize the function stack in infix notation to be evaluated later 
+
+        //initialize the stack in infix notation to be evaluated later 
         for (std::string::const_iterator it = f.begin(); it != f.end(); ++it)
         {
-            if (isalnum(char(*it)))
-                postfix += *it;
-                
+            if (isalnum(*it))
+                pfix_stack.push(*it);
+
             else if (*it == '(' || *it == '^')
                 f_stack.push(*it);
 
@@ -46,7 +49,7 @@ public:
             {
                 while (f_stack.top() != '#' && f_stack.top() != '(')
                 {
-                    postfix += f_stack.top();
+                    pfix_stack.push(f_stack.top());
                     f_stack.pop();
                 }
                 f_stack.pop();
@@ -61,7 +64,7 @@ public:
                 {
                     while (f_stack.top() != '#' && preced(*it) <= preced(f_stack.top()))
                     {
-                        postfix += f_stack.top();
+                        pfix_stack.push(f_stack.top());
                         f_stack.pop();
                     }
                     f_stack.push(*it);
@@ -71,25 +74,30 @@ public:
 
         while (f_stack.top() != '#')
         {
-            postfix += f_stack.top();
+            pfix_stack.push(f_stack.top());
             f_stack.pop();
         }
     }
 
-    // T calculate(const T& x_val)
-    // {
-    //     T y_val;
+    T calculate(const T& x_val)
+    {
+        T y_val;
+
         
 
 
-    //     return y_val;
-    // }
+        return y_val;
+    }
 
 
 
     void print()
     {
-        std::cout << postfix << std::endl;
+        while (!pfix_stack.empty())
+        {
+            std::cout << pfix_stack.top() << std::endl;
+            pfix_stack.pop();
+        }
     }
 
 };

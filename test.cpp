@@ -8,6 +8,6 @@
 
 int main()
 {
-    fparser::fparser<double> fp("x^2 + 3*x", 'x');
+    fparser::fparser<std::string> fp("x^y/(5*z)+2", "x");
     fp.print();
 }
