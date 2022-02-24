@@ -1,7 +1,19 @@
 #include <iostream>
 #include <string>
 #include <stack>
-#include <ctype.h>
+#include <cmath>
+#include <sstream>
+
+
+template <typename S> S convert_to (const std::string str)
+{
+    std::istringstream ss(str);
+    S num;
+    ss >> num;
+    return num;
+}
+
+
 
 namespace fparser 
 {
@@ -14,8 +26,10 @@ protected:
 
     std::string func;
     std::string postfix;
-    std::stack<char> pfix_stack;
     std::string var; 
+
+
+    std::map<char, T (*) (T x, T y)> operators;
 
 
     int preced(const char& ch) 
@@ -33,23 +47,28 @@ protected:
 public:
     fparser(const std::string& f, const std::string& input_var) : func(f), var(input_var)
     {
-        std::stack<char> f_stack;
-        f_stack.push('#');
+        //first initialize all the operators and their lambdas 
+        operators['+'] = [](T x, T y){return x + y;};
+        operators['-'] = [](T x, T y){return x - y;};
+        operators['*'] = [](T x, T y){return x * y;};
+        operators['/'] = [](T x, T y){return x / y;};
+        operators['^'] = [](T x, T y){return pow(x,y);};
 
-        //initialize the stack in infix notation to be evaluated later 
+        //produce the function in infix notation to perform calculations
+        std::stack<char> f_stack;
         for (std::string::const_iterator it = f.begin(); it != f.end(); ++it)
         {
             if (isalnum(*it))
-                pfix_stack.push(*it);
+                postfix += *it;
 
             else if (*it == '(' || *it == '^')
                 f_stack.push(*it);
 
             else if (*it == ')')
             {
-                while (f_stack.top() != '#' && f_stack.top() != '(')
+                while (!f_stack.empty() && f_stack.top() != '(')
                 {
-                    pfix_stack.push(f_stack.top());
+                    postfix += f_stack.top();
                     f_stack.pop();
                 }
                 f_stack.pop();
@@ -62,9 +81,9 @@ public:
             
                 else
                 {
-                    while (f_stack.top() != '#' && preced(*it) <= preced(f_stack.top()))
+                    while (!f_stack.empty() && preced(*it) <= preced(f_stack.top()))
                     {
-                        pfix_stack.push(f_stack.top());
+                        postfix += f_stack.top();
                         f_stack.pop();
                     }
                     f_stack.push(*it);
@@ -72,32 +91,51 @@ public:
             }
         }
 
-        while (f_stack.top() != '#')
+        while (!f_stack.empty())
         {
-            pfix_stack.push(f_stack.top());
+            postfix += f_stack.top();
             f_stack.pop();
         }
     }
 
+
+    //SOMETHING IS WRONG WITH CALCULATE HERE NEED TO DEBUG
+    //SEGFAULTING ON ITSELF
     T calculate(const T& x_val)
     {
         T y_val;
+        std::stack<std::string> s;
 
-        
+        for (const char c : postfix)
+        {
+            auto iter = operators.find(c);
+            if (iter != operators.end())
+            {
+                auto func = iter->second;
+                T second = convert_to<T>(s.top());
+                s.pop();
+                T first = convert_to<T>(s.top());
+                s.pop();
+                T result = func(first, second);
+                s.push(std::to_string(result));
+            }
+            else
+            {
+                if (std::to_string(c) == var)
+                    s.push(std::to_string(x_val));
+                else
+                    s.push(std::to_string(c));
+            }
+        }
 
-
-        return y_val;
+        return convert_to<T>(s.top());
     }
 
 
 
     void print()
     {
-        while (!pfix_stack.empty())
-        {
-            std::cout << pfix_stack.top() << std::endl;
-            pfix_stack.pop();
-        }
+        std::cout << postfix << std::endl;
     }
 
 };
