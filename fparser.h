@@ -2,6 +2,7 @@
 #include <string>
 #include <stack>
 #include <cmath>
+#include <map>
 #include <sstream>
 #include <cassert>
 
@@ -113,7 +114,7 @@ public:
         T y_val;
         std::stack<T> s;
 
-        for (int i = 0; i < pfix_func.size(); ++i)
+        for (size_t i = 0; i < pfix_func.size(); ++i)
         {
             auto iter = operators.find(pfix_func[i]);
 
