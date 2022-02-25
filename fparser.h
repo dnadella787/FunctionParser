@@ -8,7 +8,6 @@
 
 
 
-//error when fparser::fparser<int> fp("x^2 + 3*x + 3", "x");
 namespace fparser 
 {
 
@@ -26,13 +25,13 @@ protected:
     std::map<char, T (*) (T x, T y)> operators;
 
 
-    int preced(const char& ch) 
+    int pemdas(const char& c) 
     {
-        if (ch == '+' || ch == '-') 
+        if (c == '+' || c == '-') 
             return 1;            //Precedence of + or - is 1
-        else if(ch == '*' || ch == '/') 
+        else if(c == '*' || c == '/') 
             return 2;            //Precedence of * or / is 2
-        else if(ch == '^') 
+        else if(c == '^') 
             return 3;            //Precedence of ^ is 3
         else 
             return 0;
@@ -83,12 +82,12 @@ public:
 
             else
             {
-                if (preced(f[i]) > preced(f_stack.top()))
+                if (pemdas(f[i]) > pemdas(f_stack.top()))
                     f_stack.push(f[i]);
             
                 else
                 {
-                    while (!f_stack.empty() && preced(f[i]) <= preced(f_stack.top()))
+                    while (!f_stack.empty() && pemdas(f[i]) <= pemdas(f_stack.top()))
                     {
                         pfix_func += f_stack.top();
                         f_stack.pop();
