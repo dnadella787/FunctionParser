@@ -4,6 +4,7 @@ Main use case is when a user inputs a function as a string (like "x^2 + 2*x + 3"
 
 
 Currently working on:
-- adding support for multidigit coefficients (like 32*x)
 - error with using int as template argument 
+- adding a unit testing suite built on GoogleTest and CMake in a bit
+- (EVENTUALLY) add multivariable function evaluations as well, more useful for optimization
 
